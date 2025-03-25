@@ -1,65 +1,232 @@
-<<<<<<< HEAD
-# Login & Registration Form with MERN stack
+### ✅ **README.md for Your Stock Tracker Project**
 
-## 👋 Introduction
+---
 
-Responsive user Registration and Login (SignIn & SignUp) Form functionality using React, NodeJS, ExpressJS and MongoDB and Bootstrap.
+# 🛒 **Stock Tracker**
 
+**Stock Tracker** is a web-based application designed to streamline the management of stock, sales, and retailer data for cigarette suppliers. The app allows you to manage retailers, add supply entries, record sales, and view stock summaries efficiently.
 
-![Screenshot (219)](https://github.com/AkshataGanbote/Registration_Login_Form_MERN_Stack/assets/117456092/442bbe2d-cda7-4d5c-a156-9e9cc9b3f108)
+---
 
-![Screenshot (220)](https://github.com/AkshataGanbote/Registration_Login_Form_MERN_Stack/assets/117456092/01b04452-4e8b-4a24-b680-28c93f2c7550)
+## 🚀 **Features**
 
+✅ Retailer Management  
+✅ Supply Entry  
+✅ Sales Entry  
+✅ Stock Summary Report  
+✅ Authentication (Login)  
+✅ Logout Functionality  
+✅ Navigation with React Router  
+✅ Error Handling & Route Redirection  
 
-## ❓Requirements
+---
 
-Before going forward you must have **Node js** installed on your machine.  
-Go to the link below for installation if you don't have installed yet.
+## 🛠️ **Tech Stack**
 
-- [Node js](https://nodejs.org/en/download)
+### **Frontend**
+- ⚛️ React.js (with React Router for navigation)
+- 🅱️ Bootstrap 5.3 (for UI styling)
+- 📄 Vite (for fast development server)
+- 🌐 Axios (for HTTP requests)
+- 📊 jsPDF & jsPDF AutoTable (for PDF generation)
 
+### **Backend**
+- 🗄️ MongoDB (Database)
+- ⚙️ Express.js (Server)
+- 🚀 Node.js (Runtime)
 
-## ⚙️ Installation & Getting started :
+---
 
-1. Download the repository
+## 📂 **Folder Structure**
 
-2. Unzip folder and open it with [VS Code](https://code.visualstudio.com/)
+```
+/client               # Frontend React application
+ ├── /public           # Static files (favicon, index.html)
+ ├── /src              # Main React source files
+ │    ├── /components  # Reusable components
+ │    ├── /pages       # Main pages (Retailer, Supply, Sales, StockSummary, Login)
+ │    ├── App.jsx      # Main React component
+ │    ├── Home.jsx     # Home page with navigation
+ │    ├── main.jsx     # React DOM rendering
+ │    ├── index.css    # Global CSS styling
+ │    ├── vite.config.js # Vite configuration
+ ├── package.json      # Project dependencies & scripts
+ ├── README.md         # Documentation
+ ├── .env              # Environment variables
+ ├── .gitignore        # Files to ignore during version control
+```
 
-- <h3> Frontend
+---
 
-1. Open terminal & go to `cd frontend`
+## ⚙️ **Installation & Setup**
 
-2. Install dependencies by running `npm install` command
+### 1️⃣ **Clone the Repository**
+```bash
+git clone <your-repo-url>
+cd stock-tracker
+```
 
-3. Run the command `npm run dev` to start live server
+### 2️⃣ **Install Dependencies**
+```bash
+# For frontend
+cd client
+npm install
+```
 
-4. Click on `http://localhost:5173/`
+### 3️⃣ **Start the Development Server**
+```bash
+# Run the app
+npm run dev
+```
+By default, the app will be available at:  
+👉 `http://localhost:5173`
 
-- <h3>Backend
+---
 
-1. Open terminal & go to `cd backend` 
+## 🔑 **Environment Variables**
 
-2. install dependencies by running `npm install` command
+Create a `.env` file in the `client/` folder and add the following variables:
 
-3. Run the command `npm start` or `nodemon index.js` to start live server on database
+```env
+VITE_BACKEND_URL=http://localhost:5000   # Backend server URL
+```
 
+---
 
-- Congratulation 🎉 you have setup the environment successfully
+## 📄 **Routes**
 
+### ✅ **Frontend Routes**
+| Route              | Description                | Access         |
+|--------------------|----------------------------|----------------|
+| `/`                | Home (Retailer List)       | Authenticated  |
+| `/retailers`       | Retailer Management        | Authenticated  |
+| `/supply`          | Supply Entry               | Authenticated  |
+| `/sales`           | Sales Entry                | Authenticated  |
+| `/stock-summary`   | Stock Summary Report       | Authenticated  |
+| `/login`           | Login Page                 | Public         |
 
+### 🔥 **Backend Routes (If Required)**
+| Route              | Method      | Description         |
+|--------------------|------------|---------------------|
+| `/api/retailers`   | GET, POST   | Manage retailers    |
+| `/api/supply`      | GET, POST   | Add supply entries  |
+| `/api/sales`       | GET, POST   | Record sales data   |
+| `/api/stock`       | GET         | View stock summary  |
 
-## 🛠️ Technology Used
+---
 
-This project uses the following technologies:
+## 💻 **Usage Instructions**
 
-- [React](https://reactjs.org) and [React Router](https://reacttraining.com/react-router/) for frontend
-- [Express](http://expressjs.com/) and [Node](https://nodejs.org/en/) for the backend
-- [MongoDB](https://www.mongodb.com/) for the database
-- [Bootstrap](https://getbootstrap.com/) for styling
+1. **Login:**  
+   - Use the login page to authenticate.  
+   - On successful login, you will be redirected to the **Retailers page**.  
 
-<br/>
+2. **Navigation:**  
+   - Navigate between **Retailers**, **Supply Entry**, **Sales Entry**, and **Stock Summary** using the navbar.  
+   
+3. **Data Entry:**  
+   - Add retailers, supply entries, and sales transactions.  
 
-<h2> Do not forget to give a star! ⭐🤗 </h2>
-=======
-# Sales_Management
->>>>>>> 94ec82010800dcc4690b98d6c9ecf3bc2ee9861f
+4. **Stock Summary:**  
+   - View the overall stock summary and download it as a PDF.
+
+---
+
+## ⚠️ **Error Handling**
+
+- When accessing invalid routes, the app redirects to the `/` page.
+- If the user is not logged in, they are redirected to the `/login` page.
+
+---
+
+## 🔥 **PDF Generation**
+
+The app uses `jsPDF` and `jsPDF AutoTable` to generate PDF reports for the **Stock Summary**.
+
+---
+
+## 🚀 **Deployment**
+
+### **1️⃣ Build the App**
+To create a production build:
+```bash
+npm run build
+```
+
+### **2️⃣ Deploy on Vercel/Netlify**
+- For **Vercel**:
+```bash
+vercel deploy
+```
+- For **Netlify**:
+```bash
+netlify deploy
+```
+
+---
+
+## ✅ **Troubleshooting**
+
+1. **404 Error on Refresh:**  
+   - If you get a `404 Not Found` error on refreshing, add the following fallback configuration in your `vite.config.js`:
+```javascript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    historyApiFallback: true  // Handles React Router navigation on refresh
+  }
+});
+```
+
+2. **Clear Cache:**  
+If you face issues with stale components:
+```bash
+npm cache clean --force
+```
+Then, restart the server:
+```bash
+npm run dev
+```
+
+---
+
+## 📌 **Future Enhancements**
+
+- 📊 **Analytics Dashboard** with graphical insights.  
+- 💡 **User Roles & Permissions** (Admin, Supplier, Retailer).  
+- 🛡️ **Authentication & Authorization** with JWT.  
+- 📈 **Advanced Reporting** with CSV/PDF exports.  
+- 📦 **Inventory Alerts** for low-stock notifications.  
+
+---
+
+## 👩‍💻 **Contributing**
+
+Feel free to contribute by opening a pull request or reporting issues.  
+1. Fork the repository.  
+2. Create a new branch:
+```bash
+git checkout -b feature/new-feature
+```
+3. Commit your changes:
+```bash
+git commit -m "Add new feature"
+```
+4. Push the branch:
+```bash
+git push origin feature/new-feature
+```
+5. Open a Pull Request 🚀
+
+---
+
+## ⚙️ **License**
+This project is licensed under the MIT License.
+
+---
+
+## 📫 **Contact**
+For any queries or issues, feel free to reach out to me. 😊
