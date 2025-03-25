@@ -22,7 +22,7 @@ const app = express();
 app.use(express.json());
 // ✅ Corrected CORS Middleware
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: "https://sales-management-1.onrender.com",
   methods: ["POST", "GET"],
   credentials: true
 }));
