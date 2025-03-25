@@ -176,6 +176,8 @@ const resetStockSummary = async () => {
 cron.schedule("0 0 * * 7", sendStockEmail); // Every Sunday at midnight
 cron.schedule("0 0 * * 1", resetStockSummary); // Every Monday at midnight
 
+const PORT = process.env.PORT || 3001;  // Use Render-provided PORT
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
