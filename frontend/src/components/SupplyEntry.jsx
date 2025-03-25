@@ -5,6 +5,7 @@ import * as autoTable from "jspdf-autotable";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const SupplyEntry = () => {
   const [formData, setFormData] = useState({
@@ -33,7 +34,7 @@ const SupplyEntry = () => {
 
     const fetchRetailers = async () => {
       try {
-        const response = await axios.get("http://localhost:3001/api/retailers");
+        const response = await axios.get(`${BACKEND_URL}/api/retailers`);
         setRetailers(response.data);
       } catch (error) {
         console.error("Error fetching retailers:", error);
@@ -183,7 +184,6 @@ const SupplyEntry = () => {
 
   const generatePDF = () => {
     try {
-      // Validate inputs
       if (!formData.retailerId) {
         alert("Please select a retailer first");
         return;
@@ -195,24 +195,21 @@ const SupplyEntry = () => {
         return;
       }
   
-      // Initialize PDF with proper settings
       const doc = new jsPDF({
         orientation: "portrait",
         unit: "mm",
         format: "a4"
       });
   
-      // ===== HEADER SECTION =====
+      // Header
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
       doc.setTextColor(40, 53, 147);
       doc.text("CIGARETTE SUPPLY INVOICE", 105, 20, { align: 'center' });
-      
-      // Divider line
       doc.setDrawColor(200, 200, 200);
       doc.line(15, 25, 195, 25);
   
-      // ===== RETAILER INFO =====
+      // Retailer Info
       doc.setFontSize(10);
       doc.setTextColor(80);
       doc.setFont("helvetica", "bold");
@@ -223,7 +220,7 @@ const SupplyEntry = () => {
       doc.text(`Date: ${new Date().toLocaleDateString()}`, 15, 50);
       doc.text(`Time: ${new Date().toLocaleTimeString()}`, 15, 55);
   
-      // ===== PRODUCTS TABLE =====
+      // Products Table
       const tableData = formData.supplyData.map((item, index) => [
         index + 1,
         item.brand || "N/A",
@@ -232,7 +229,6 @@ const SupplyEntry = () => {
         `₹${(Number(item.numberOfPackets) * Number(item.sellingPrice || 0)).toFixed(2)}`
       ]);
   
-      // Generate table without the "1" markers
       doc.autoTable({
         startY: 65,
         head: [['#', 'Product', 'Qty', 'Unit Price', 'Total']],
@@ -262,37 +258,29 @@ const SupplyEntry = () => {
         }
       });
   
-      // ===== PAYMENT SUMMARY =====
-      const finalY = Math.min(doc.lastAutoTable.finalY + 15, 250); // Prevent overflow
-      
-      // Summary box with border
+      // Payment Summary
+      const finalY = Math.min(doc.lastAutoTable.finalY + 15, 250);
       doc.setDrawColor(150, 150, 150);
       doc.setFillColor(245, 245, 245);
       doc.roundedRect(120, finalY - 5, 75, 40, 3, 3, 'FD');
-      
-      // Summary content
       doc.setFontSize(11);
       doc.setFont("helvetica", "bold");
       doc.text("PAYMENT SUMMARY", 135, finalY, { align: 'center' });
-      
       doc.setFont("helvetica", "normal");
       doc.text(`Subtotal:`, 125, finalY + 10);
       doc.text(`₹${Number(grandTotal.replace(/[^0-9.-]+/g,"")).toFixed(2)}`, 180, finalY + 10, { align: 'right' });
-      
       doc.text(`Paid Amount:`, 125, finalY + 18);
       doc.text(`₹${Number(formData.paidAmount || 0).toFixed(2)}`, 180, finalY + 18, { align: 'right' });
-      
       const balance = Number(grandTotal.replace(/[^0-9.-]+/g,"")) - Number(formData.paidAmount || 0);
       doc.setFont("helvetica", "bold");
       doc.text(`Balance Due:`, 125, finalY + 26);
       doc.text(`₹${balance.toFixed(2)}`, 180, finalY + 26, { align: 'right' });
   
-      // ===== FOOTER =====
+      // Footer
       doc.setFontSize(8);
       doc.setTextColor(100);
       doc.text("Thank you for your business!", 105, 285, { align: 'center' });
   
-      // Save PDF
       const fileName = `Invoice_${retailer.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.pdf`;
       doc.save(fileName);
   
@@ -301,6 +289,7 @@ const SupplyEntry = () => {
       alert(`Failed to generate PDF: ${error.message}`);
     }
   };
+
   const handleSubmit = async () => {
     if (!formData.retailerId) {
       setSubmitError("Please select a retailer");
@@ -338,7 +327,7 @@ const SupplyEntry = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:3001/api/supply/add",
+        `${BACKEND_URL}/api/supply/add`,
         payload
       );
 
@@ -367,20 +356,23 @@ const SupplyEntry = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h2 className="text-center mb-4">🚚 Supply Cigarettes</h2>
+    <div className="container mt-3 p-2">
+      <h2 className="text-center mb-3">🚚 Supply Cigarettes</h2>
 
       {/* Retailer Selection */}
-      <div className="card mb-3">
-        <div className="card-header d-flex justify-content-between align-items-center">
+      <div className="card mb-3 shadow-sm">
+        <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center p-2">
           <h5 className="card-title mb-0">🏪 Select Retailer</h5>
           {formData.retailerId && (
-            <button className="btn btn-sm btn-outline-primary" onClick={saveRetailerProducts}>
-              Save Products for Retailer
+            <button 
+              className="btn btn-sm btn-light" 
+              onClick={saveRetailerProducts}
+            >
+              <i className="fa fa-save me-1"></i> Save
             </button>
           )}
         </div>
-        <div className="card-body">
+        <div className="card-body p-2">
           <select
             className="form-select"
             value={formData.retailerId}
@@ -397,92 +389,158 @@ const SupplyEntry = () => {
       </div>
 
       {/* Product Management */}
-      <div className="card mb-3">
-        <div className="card-header d-flex justify-content-between align-items-center">
-          <h5 className="card-title mb-0">📦 Product Management</h5>
+      <div className="card mb-3 shadow-sm">
+        <div className="card-header bg-success text-white d-flex justify-content-between align-items-center p-2">
+          <h5 className="card-title mb-0">📦 Products</h5>
           <div>
             <button
-              className="btn btn-sm btn-outline-secondary me-2"
+              className="btn btn-sm btn-light me-1"
               onClick={() => setShowTemplateModal(true)}
             >
-              Load Template
+              <i className="fa fa-folder-open me-1"></i> Load
             </button>
             <button
-              className="btn btn-sm btn-outline-success"
+              className="btn btn-sm btn-light"
               onClick={saveAsTemplate}
               disabled={productCount === 0}
             >
-              Save as Template
+              <i className="fa fa-save me-1"></i> Save
             </button>
           </div>
         </div>
-        <div className="card-body">
-          <div className="row">
-            <div className="col-md-6">
+        <div className="card-body p-2">
+          <div className="row g-2 mb-3">
+            <div className="col-12 col-md-6">
               <label className="form-label">Number of Products</label>
               <input
                 type="number"
                 className="form-control"
                 value={productCount}
                 onChange={handleProductCountChange}
+                min="0"
               />
             </div>
-            <div className="col-md-6">
-              <label className="form-label">Bulk Actions</label>
-              <div className="input-group">
-                <button
-                  className="btn btn-outline-secondary"
-                  onClick={() =>
-                    navigator.clipboard.writeText(
-                      productNames.join("\n") +
-                        "\n" +
-                        formData.supplyData.map((p) => p.sellingPrice || "").join("\n")
-                    )
-                  }
-                >
-                  Copy Names + Prices
-                </button>
-              </div>
+            <div className="col-12 col-md-6">
+              <label className="form-label">Quick Actions</label>
+              <button
+                className="btn btn-outline-secondary w-100"
+                onClick={() =>
+                  navigator.clipboard.writeText(
+                    productNames.join("\n") +
+                      "\n" +
+                      formData.supplyData.map((p) => p.sellingPrice || "").join("\n")
+                  )
+                }
+              >
+                <i className="fa fa-copy me-1"></i> Copy Data
+              </button>
             </div>
           </div>
 
-          {Array.from({ length: productCount }).map((_, index) => (
-            <div className="row mt-3" key={index}>
-              <div className="col-md-3">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder={`Product ${index + 1} Name`}
-                  value={productNames[index] || ""}
-                  onChange={(e) => handleProductNameChange(index, e.target.value)}
-                />
+          {/* Mobile Product List */}
+          <div className="d-block d-md-none">
+            {Array.from({ length: productCount }).map((_, index) => (
+              <div className="card mb-2 p-2" key={index}>
+                <div className="mb-2">
+                  <label className="form-label">Product {index + 1}</label>
+                  <input
+                    type="text"
+                    className="form-control mb-2"
+                    placeholder="Name"
+                    value={productNames[index] || ""}
+                    onChange={(e) => handleProductNameChange(index, e.target.value)}
+                  />
+                  <div className="row g-2">
+                    <div className="col-6">
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="Packets"
+                        value={formData.supplyData[index]?.numberOfPackets || ""}
+                        onChange={(e) => handlePacketChange(index, e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                    <div className="col-6">
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="Price"
+                        value={formData.supplyData[index]?.sellingPrice || ""}
+                        onChange={(e) => handleSellingPriceChange(index, e.target.value)}
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="d-flex justify-content-between align-items-center">
+                  <span className="text-muted">Total:</span>
+                  <strong>{formData.supplyData[index]?.total || "₹0.00"}</strong>
+                </div>
               </div>
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="Packets"
-                  value={formData.supplyData[index]?.numberOfPackets || ""}
-                  onChange={(e) => handlePacketChange(index, e.target.value)}
-                />
-              </div>
-              <div className="col-md-2">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="Price"
-                  value={formData.supplyData[index]?.sellingPrice || ""}
-                  onChange={(e) => handleSellingPriceChange(index, e.target.value)}
-                />
-              </div>
-              <div className="col-md-2 d-flex align-items-center">
-                <strong>{formData.supplyData[index]?.total || "₹0.00"}</strong>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
 
-          <div className="row mt-4">
-            <div className="col-md-4">
+          {/* Desktop Product Table */}
+          <div className="d-none d-md-block">
+            {productCount > 0 && (
+              <div className="table-responsive">
+                <table className="table table-bordered table-hover">
+                  <thead className="table-dark">
+                    <tr>
+                      <th>#</th>
+                      <th>Product</th>
+                      <th>Packets</th>
+                      <th>Price</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Array.from({ length: productCount }).map((_, index) => (
+                      <tr key={index}>
+                        <td>{index + 1}</td>
+                        <td>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={productNames[index] || ""}
+                            onChange={(e) => handleProductNameChange(index, e.target.value)}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="form-control"
+                            value={formData.supplyData[index]?.numberOfPackets || ""}
+                            onChange={(e) => handlePacketChange(index, e.target.value)}
+                            min="0"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            className="form-control"
+                            value={formData.supplyData[index]?.sellingPrice || ""}
+                            onChange={(e) => handleSellingPriceChange(index, e.target.value)}
+                            min="0"
+                            step="0.01"
+                          />
+                        </td>
+                        <td className="align-middle">
+                          <strong>{formData.supplyData[index]?.total || "₹0.00"}</strong>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Payment Section */}
+          <div className="row g-2 mt-3">
+            <div className="col-12 col-md-4">
               <label className="form-label">💰 Paid Amount</label>
               <input
                 type="number"
@@ -491,50 +549,57 @@ const SupplyEntry = () => {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, paidAmount: e.target.value }))
                 }
+                min="0"
+                step="0.01"
               />
             </div>
-            <div className="col-md-4 d-flex align-items-center">
+            <div className="col-12 col-md-4 d-flex align-items-center">
               <h5 className="mb-0">
                 Grand Total: <span className="text-success">{grandTotal}</span>
               </h5>
             </div>
-            <div className="col-md-4 d-flex align-items-center justify-content-end gap-2">
+            <div className="col-12 col-md-4 d-flex align-items-center gap-2">
               <button 
-                className="btn btn-primary"
+                className="btn btn-primary flex-grow-1"
                 onClick={generatePDF}
                 disabled={!formData.retailerId || productCount === 0}
               >
-                <i className="fa fa-download me-2"></i> Download PDF
+                <i className="fa fa-download me-1"></i> PDF
               </button>
               <button
-                className="btn btn-success"
+                className="btn btn-success flex-grow-1"
                 onClick={handleSubmit}
                 disabled={submitting || !formData.retailerId || productCount === 0}
               >
                 {submitting ? (
                   <>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                    Submitting...
+                    <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    Submit
                   </>
                 ) : (
                   <>
-                    <i className="fa fa-paper-plane me-2"></i> Submit Supply
+                    <i className="fa fa-paper-plane me-1"></i> Submit
                   </>
                 )}
               </button>
             </div>
           </div>
 
+          {/* Status Messages */}
           {submitSuccess && (
-            <div className="alert alert-success mt-3">
-              Supply record submitted successfully!
-              <button className="btn btn-sm btn-outline-secondary ms-3" onClick={resetForm}>
-                Create New Entry
+            <div className="alert alert-success mt-3 d-flex justify-content-between align-items-center">
+              <span>
+                <i className="fa fa-check-circle me-2"></i>
+                Supply record submitted successfully!
+              </span>
+              <button className="btn btn-sm btn-outline-secondary" onClick={resetForm}>
+                New Entry
               </button>
             </div>
           )}
           {submitError && (
             <div className="alert alert-danger mt-3">
+              <i className="fa fa-exclamation-circle me-2"></i>
               {submitError}
             </div>
           )}
@@ -543,30 +608,48 @@ const SupplyEntry = () => {
 
       {/* Load Template Modal */}
       {showTemplateModal && (
-        <div className="modal show d-block" tabIndex="-1">
-          <div className="modal-dialog modal-dialog-scrollable">
+        <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content">
-              <div className="modal-header">
+              <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title">📁 Load Template</h5>
                 <button
                   type="button"
-                  className="btn-close"
+                  className="btn-close btn-close-white"
                   onClick={() => setShowTemplateModal(false)}
                 ></button>
               </div>
               <div className="modal-body">
-                {templates.length === 0 && <p>No templates saved yet.</p>}
-                {templates.map((template, index) => (
-                  <div key={index} className="d-flex justify-content-between align-items-center mb-2">
-                    <span>{template.name}</span>
-                    <button
-                      className="btn btn-sm btn-outline-primary"
-                      onClick={() => loadTemplate(template)}
-                    >
-                      Load
-                    </button>
+                {templates.length === 0 ? (
+                  <div className="text-center py-3">
+                    <i className="fa fa-folder-open fa-3x text-muted mb-3"></i>
+                    <p>No templates saved yet.</p>
                   </div>
-                ))}
+                ) : (
+                  <div className="list-group">
+                    {templates.map((template, index) => (
+                      <button
+                        key={index}
+                        className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                        onClick={() => loadTemplate(template)}
+                      >
+                        <span>{template.name}</span>
+                        <span className="badge bg-primary rounded-pill">
+                          {template.products.length} products
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowTemplateModal(false)}
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>

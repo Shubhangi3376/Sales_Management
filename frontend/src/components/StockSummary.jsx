@@ -12,12 +12,12 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
-// Improved data processing utility with better error handling
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
 const processRetailerData = (retailer) => {
   if (!retailer) return null;
   
   try {
-    // Safely extract data with defaults
     const retailerId = retailer.retailerId || "N/A";
     const retailerName = retailer.retailerName || "Unknown Retailer";
     const earnings = Number(retailer.earnings) || 0;
@@ -31,19 +31,16 @@ const processRetailerData = (retailer) => {
     const stockTrends = retailer.stockTrends || {};
     const turnoverRates = retailer.turnoverRates || {};
     
-    // Process brand data with validation
-   // Process brand data with validation
-const brands = Object.keys(totalSupplied || {});
-const brandData = brands.map(brand => ({
-  brand,
-  supplied: Number(totalSupplied?.[brand]) || 0,
-  sold: Number(totalSold?.[brand]) || 0,
-  remaining: Number(remainingStock?.[brand]) || 0,
-  trend: stockTrends?.[brand] || 'stable',
-  turnover: Math.min(Math.max(Number(turnoverRates?.[brand]) || 0, 0), 100)
-}));
+    const brands = Object.keys(totalSupplied || {});
+    const brandData = brands.map(brand => ({
+      brand,
+      supplied: Number(totalSupplied?.[brand]) || 0,
+      sold: Number(totalSold?.[brand]) || 0,
+      remaining: Number(remainingStock?.[brand]) || 0,
+      trend: stockTrends?.[brand] || 'stable',
+      turnover: Math.min(Math.max(Number(turnoverRates?.[brand]) || 0, 0), 100)
+    }));
     
-    // Process alerts and suggestions with validation
     const lowStockAlerts = Array.isArray(retailer.lowStockAlerts) 
       ? retailer.lowStockAlerts.filter(alert => typeof alert === 'string') 
       : [];
@@ -80,7 +77,7 @@ const StockSummary = () => {
       setLoading(true);
       setError(null);
       
-      const response = await axios.get(`http://localhost:3001/api/stock`, {
+      const response = await axios.get(`${BACKEND_URL}/api/stock`, {
         params: { time: timeFilter },
         timeout: 10000
       });
@@ -89,15 +86,10 @@ const StockSummary = () => {
         throw new Error("No data received from server");
       }
       
-      // Process data with additional validation
       const responseData = Array.isArray(response.data) ? response.data : [response.data];
       const processedData = responseData
         .map(processRetailerData)
-        .filter(retailer => {
-          if (!retailer) return false;
-          // Ensure required fields exist
-          return retailer.retailerId && retailer.brandData;
-        });
+        .filter(retailer => retailer && retailer.retailerId && retailer.brandData);
       
       if (processedData.length === 0) {
         throw new Error("No valid retailer data found");
@@ -126,8 +118,7 @@ const StockSummary = () => {
       retailer.retailerName.toLowerCase().includes(term) ||
       retailer.brandData.some(brand => 
         brand?.brand?.toLowerCase().includes(term)
-      )
-    );
+    ));
   });
 
   const exportToExcel = (retailer) => {
@@ -136,7 +127,6 @@ const StockSummary = () => {
         throw new Error("Invalid retailer data for export");
       }
 
-      // Inventory data
       const inventorySheet = retailer.brandData.map(brand => ({
         Brand: brand.brand || "N/A",
         Supplied: brand.supplied || 0,
@@ -146,7 +136,6 @@ const StockSummary = () => {
         Trend: brand.trend || "stable"
       }));
       
-      // Financial data
       const financialSheet = [
         { Metric: "Total Earnings", Value: retailer.earnings || 0 },
         { Metric: "Total Dues", Value: retailer.totalDues || 0 },
@@ -164,7 +153,6 @@ const StockSummary = () => {
         "Financials"
       );
       
-      // Generate Excel file
       const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
       saveAs(
         new Blob([excelBuffer], { type: "application/octet-stream" }),
@@ -179,9 +167,13 @@ const StockSummary = () => {
   const renderBrandRow = (brand) => (
     <tr key={brand.brand || Math.random()}>
       <td>
-        {brand.brand || "N/A"}
-        {brand.trend === "up" && <ArrowUp color="green" className="ms-2" />}
-        {brand.trend === "down" && <ArrowDown color="red" className="ms-2" />}
+        <div className="d-flex align-items-center">
+          <span className="text-truncate" style={{ maxWidth: "100px" }}>
+            {brand.brand || "N/A"}
+          </span>
+          {brand.trend === "up" && <ArrowUp color="green" className="ms-2 flex-shrink-0" />}
+          {brand.trend === "down" && <ArrowDown color="red" className="ms-2 flex-shrink-0" />}
+        </div>
       </td>
       <td>{(brand.supplied || 0).toLocaleString()}</td>
       <td>{(brand.sold || 0).toLocaleString()}</td>
@@ -240,17 +232,17 @@ const StockSummary = () => {
   }
 
   return (
-    <Container className="mt-4 mb-5">
+    <Container fluid className="mt-3 mb-5 px-3 px-md-4">
       <h2 className="text-center mb-4">Stock Analytics Dashboard</h2>
       
-      {/* Filters */}
+      {/* Filters - Stack on mobile */}
       <div className="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
         <Form.Control
           type="search"
           placeholder="Search retailers or brands..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{ maxWidth: "400px" }}
+          className="flex-grow-1"
         />
         
         <ButtonGroup className="flex-wrap">
@@ -260,6 +252,7 @@ const StockSummary = () => {
               variant={timeFilter === period ? "primary" : "outline-primary"}
               onClick={() => setTimeFilter(period)}
               className="text-nowrap"
+              size="sm"
             >
               {period.charAt(0).toUpperCase() + period.slice(1)}
             </Button>
@@ -271,10 +264,12 @@ const StockSummary = () => {
       <Accordion alwaysOpen>
         {filteredData.map((retailer, index) => (
           <Accordion.Item eventKey={index.toString()} key={retailer.retailerId || index}>
-            <Accordion.Header className="py-3">
-              <div className="d-flex justify-content-between align-items-center w-100 pe-2">
+            <Accordion.Header className="py-2">
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center w-100 pe-2 gap-2">
                 <div className="d-flex align-items-center">
-                  <strong>{retailer.retailerName || "Unknown Retailer"}</strong>
+                  <strong className="text-truncate" style={{ maxWidth: "200px" }}>
+                    {retailer.retailerName || "Unknown Retailer"}
+                  </strong>
                   {(retailer.lowStockAlerts?.length || 0) > 0 && (
                     <Badge bg="danger" className="ms-2">
                       {retailer.lowStockAlerts.length} Alerts
@@ -288,18 +283,19 @@ const StockSummary = () => {
                     e.stopPropagation();
                     exportToExcel(retailer);
                   }}
-                  className="ms-2"
+                  className="ms-md-2 mt-2 mt-md-0"
                 >
-                  <Download /> Export
+                  <Download size={16} className="me-1" />
+                  <span className="d-none d-md-inline">Export</span>
                 </Button>
               </div>
             </Accordion.Header>
 
-            <Accordion.Body>
+            <Accordion.Body className="p-2 p-md-3">
               <div className="mb-4">
                 <h5>Inventory Overview</h5>
                 <div className="table-responsive">
-                  <Table bordered hover className="mb-4">
+                  <Table bordered hover className="mb-4" size="sm">
                     <thead className="table-light">
                       <tr>
                         <th>Brand</th>
@@ -316,10 +312,10 @@ const StockSummary = () => {
                 </div>
               </div>
 
-              <div className="row g-4">
-                <div className="col-lg-6">
+              <div className="row g-3">
+                <div className="col-12 col-lg-6">
                   <h5 className="mb-3">Sales Visualization</h5>
-                  <div style={{ height: "300px" }}>
+                  <div style={{ height: "250px" }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={retailer.brandData || []}
@@ -347,9 +343,9 @@ const StockSummary = () => {
                   </div>
                 </div>
 
-                <div className="col-lg-6">
+                <div className="col-12 col-lg-6">
                   <h5 className="mb-3">Retailer Summary</h5>
-                  <Table bordered className="mb-4">
+                  <Table bordered className="mb-3" size="sm">
                     <tbody>
                       <tr>
                         <td><strong>Earnings</strong></td>
@@ -390,13 +386,13 @@ const StockSummary = () => {
                   <div className="mb-3">
                     {(retailer.lowStockAlerts?.length || 0) > 0 && (
                       <Alert variant="warning" className="mb-3">
-                        <Alert.Heading>
-                          <ExclamationTriangleFill className="me-2" />
-                          Low Stock Alerts ({retailer.lowStockAlerts.length})
+                        <Alert.Heading className="d-flex align-items-center">
+                          <ExclamationTriangleFill className="me-2 flex-shrink-0" />
+                          <span>Low Stock Alerts ({retailer.lowStockAlerts.length})</span>
                         </Alert.Heading>
-                        <ul className="mb-0">
+                        <ul className="mb-0 ps-3">
                           {retailer.lowStockAlerts.map((alert, idx) => (
-                            <li key={idx}>{alert || "Unknown alert"}</li>
+                            <li key={idx} className="small">{alert || "Unknown alert"}</li>
                           ))}
                         </ul>
                       </Alert>
@@ -404,13 +400,13 @@ const StockSummary = () => {
 
                     {(retailer.reorderSuggestions?.length || 0) > 0 && (
                       <Alert variant="info">
-                        <Alert.Heading>
-                          <CartPlus className="me-2" />
-                          Reorder Suggestions ({retailer.reorderSuggestions.length})
+                        <Alert.Heading className="d-flex align-items-center">
+                          <CartPlus className="me-2 flex-shrink-0" />
+                          <span>Reorder Suggestions ({retailer.reorderSuggestions.length})</span>
                         </Alert.Heading>
-                        <ul className="mb-0">
+                        <ul className="mb-0 ps-3">
                           {retailer.reorderSuggestions.map((suggestion, idx) => (
-                            <li key={idx}>{suggestion || "Unknown suggestion"}</li>
+                            <li key={idx} className="small">{suggestion || "Unknown suggestion"}</li>
                           ))}
                         </ul>
                       </Alert>
