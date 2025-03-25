@@ -4,10 +4,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Dashboard = ({ handleLogout }) => {
     return (
-        <>
+        <div className="d-flex flex-column min-vh-100">
             {/* Navbar - optimized for mobile */}
-            <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+            <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
                 <div className="container-fluid px-3">
+                    {/* Brand and toggle button */}
                     <div className="d-flex w-100 align-items-center">
                         <NavLink className="navbar-brand me-auto" to="/home">
                             <span className="d-none d-sm-inline">Stock Tracker</span>
@@ -18,6 +19,7 @@ const Dashboard = ({ handleLogout }) => {
                             <button 
                                 className="btn btn-outline-light btn-sm me-2 d-lg-none" 
                                 onClick={handleLogout}
+                                aria-label="Logout"
                             >
                                 <i className="bi bi-box-arrow-right"></i>
                             </button>
@@ -25,8 +27,8 @@ const Dashboard = ({ handleLogout }) => {
                                 className="navbar-toggler" 
                                 type="button" 
                                 data-bs-toggle="collapse" 
-                                data-bs-target="#navbarNavDropdown"
-                                aria-controls="navbarNavDropdown"
+                                data-bs-target="#mainNavbar"
+                                aria-controls="mainNavbar"
                                 aria-expanded="false"
                                 aria-label="Toggle navigation"
                             >
@@ -35,54 +37,17 @@ const Dashboard = ({ handleLogout }) => {
                         </div>
                     </div>
 
-                    <div className="collapse navbar-collapse mt-2 mt-lg-0" id="navbarNavDropdown">
+                    {/* Collapsible content */}
+                    <div className="collapse navbar-collapse" id="mainNavbar">
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-                            <li className="nav-item">
-                                <NavLink 
-                                    className={({ isActive }) => 
-                                        `nav-link ${isActive ? 'active' : ''}`
-                                    } 
-                                    to="/home/retailers"
-                                >
-                                    <i className="bi bi-shop me-1 d-lg-none"></i>
-                                    Retailers
-                                </NavLink>
-                            </li>
-                            <li className="nav-item">
-                                <NavLink 
-                                    className={({ isActive }) => 
-                                        `nav-link ${isActive ? 'active' : ''}`
-                                    } 
-                                    to="/home/supply"
-                                >
-                                    <i className="bi bi-truck me-1 d-lg-none"></i>
-                                    Supply Entry
-                                </NavLink>
-                            </li>
-                            <li className="nav-item">
-                                <NavLink 
-                                    className={({ isActive }) => 
-                                        `nav-link ${isActive ? 'active' : ''}`
-                                    } 
-                                    to="/home/sales"
-                                >
-                                    <i className="bi bi-cash-coin me-1 d-lg-none"></i>
-                                    Sales Entry
-                                </NavLink>
-                            </li>
-                            <li className="nav-item">
-                                <NavLink 
-                                    className={({ isActive }) => 
-                                        `nav-link ${isActive ? 'active' : ''}`
-                                    } 
-                                    to="/home/stock-summary"
-                                >
-                                    <i className="bi bi-clipboard-data me-1 d-lg-none"></i>
-                                    Stock Summary
-                                </NavLink>
-                            </li>
+                            <NavItem to="/home/retailers" icon="shop" text="Retailers" />
+                            <NavItem to="/home/supply" icon="truck" text="Supply Entry" />
+                            <NavItem to="/home/sales" icon="cash-coin" text="Sales Entry" />
+                            <NavItem to="/home/stock-summary" icon="clipboard-data" text="Stock Summary" />
                         </ul>
-                        <div className="d-flex pb-2 pb-lg-0">
+                        
+                        {/* Logout button - desktop version */}
+                        <div className="d-flex my-2 my-lg-0">
                             <button 
                                 className="btn btn-outline-light d-none d-lg-block" 
                                 onClick={handleLogout}
@@ -95,11 +60,26 @@ const Dashboard = ({ handleLogout }) => {
             </nav>
 
             {/* Page Content - adjusted padding for mobile */}
-            <div className="container-fluid px-3 px-md-4 py-3">
-                <Outlet /> {/* Render nested routes here */}
-            </div>
-        </>
+            <main className="flex-grow-1 container-fluid px-3 px-md-4 py-3">
+                <Outlet />
+            </main>
+        </div>
     );
 };
+
+// Reusable NavItem component
+const NavItem = ({ to, icon, text }) => (
+    <li className="nav-item">
+        <NavLink 
+            className={({ isActive }) => 
+                `nav-link ${isActive ? 'active' : ''}`
+            } 
+            to={to}
+        >
+            <i className={`bi bi-${icon} me-1 d-lg-none`}></i>
+            {text}
+        </NavLink>
+    </li>
+);
 
 export default Dashboard;
