@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Login & Registration Form with MERN stack
 
 ## 👋 Introduction
@@ -59,3 +60,6 @@ This project uses the following technologies:
 <br/>
 
 <h2> Do not forget to give a star! ⭐🤗 </h2>
+=======
+# Sales_Management
+>>>>>>> 94ec82010800dcc4690b98d6c9ecf3bc2ee9861f
